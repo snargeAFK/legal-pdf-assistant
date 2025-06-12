@@ -36,7 +36,7 @@ def ask_gpt(question, context_chunks):
     for c in context_chunks:
         context += f"{c['text']}\n\n(Source: {c['source']}, Page {c.get('page', '?')})\n\n"
 
-    prompt = f"""You are a legal assistant AI. You must answer questions using the provided context. Cite each quote by document name and page number and also quote the relevant sections. If no quote can be found, respond: 'No source found in provided documents.'
+    prompt = f"""You are a legal assistant AI. Think realy hard about any possible connections between the question and the provided context. You must use direct quotes from the provided context if possible. Cite each quote by document name and page number. Also cite the relevant text used to generate the answer. If no quote can be found, respond: 'No source found in provided documents.'
 
 Context:
 {context}

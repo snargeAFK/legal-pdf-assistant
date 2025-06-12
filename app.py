@@ -6,7 +6,7 @@ import numpy as np
 import os
 
 # Set your API key
-openai.api_key = "sk-...your-key-here..."
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # Load cached index and chunks
 INDEX_FILE = "vector.index"

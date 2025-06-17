@@ -7,7 +7,6 @@ import numpy as np
 # -------------- AUTH ----------------
 USERS = st.secrets["users"]
 
-
 def login():
     st.title("🔐 LGA Handbook Login")
     username = st.text_input("Username")
@@ -28,7 +27,7 @@ st.set_page_config(page_title="LGA Handbook AI Search", page_icon="📘")
 
 col1, col2 = st.columns([1, 5])
 with col1:
-    st.image("lga_logo.png", width=80)  # ✅ place logo in the same folder as app.py
+    st.image("lga_logo.png", width=80)
 with col2:
     st.title("LGA Handbook AI Search")
     st.write("Ask me anything! If there is something in the LGA Handbook relevant to your question, I will let you know.")
@@ -70,37 +69,15 @@ def ask_gpt(question, context_chunks):
         context += f"{c['text']}\n\n(Source: {c['source']}, Page {c.get('page', '?')})\n\n"
 
     prompt = f"""
-You are an AI legal assistant.
-
-Based only on the context below, first provide a **brief summary** to answer the user's question.
-Then list all **relevant direct quotes** from the context that support the answer.
-Each quote must include its document name and page number.
-
-If no answer can be found, respond: "No relevant information was found in the provided documents."
-
----
+You are an AI trained to help legal professionals find relevant content in the LGA Handbook.
+Use only direct quotes from the context and cite them clearly. Begin with a concise summary.
 
 Context:
 {context}
 
----
-
 Question:
 {question}
-
----
-
-Answer Format:
-
-Answer Summary:
-[Short summary]
-
-Supporting Quotes:
-"Quote 1" (Source: filename.pdf, Page X)
-
-"Quote 2" (Source: filename.pdf, Page Y)
 """
-
     response = openai.chat.completions.create(
         model="gpt-4o",
         messages=[{"role": "user", "content": prompt}],
@@ -114,5 +91,19 @@ if st.button("Submit") and query:
     with st.spinner("Searching LGA Handbook..."):
         matches = search_chunks(query, index, chunks)
         answer = ask_gpt(query, matches)
+
+    # Separate answer and supporting quotes using simple convention (e.g. first paragraph = summary)
+    parts = answer.strip().split("\n\n")
+    summary = parts[0]
+    supporting_quotes = "\n\n".join(parts[1:])
+
     st.markdown("### 📘 Answer:")
-    st.write(answer)
+    st.write(summary)
+
+    if supporting_quotes:
+        with st.expander("📄 Show supporting quotes"):
+            st.markdown(supporting_quotes)
+
+        with st.expander("🔍 Source Chunks"):
+            for chunk in matches:
+                st.markdown(f"**{chunk['source']} (Page {chunk.get('page', '?')})**\n\n> {chunk['text']}")

@@ -8,6 +8,7 @@ import numpy as np
 USERS = st.secrets["users"]
 
 def login():
+    st.set_page_config(page_title="LGA Handbook AI Search", page_icon="📘")
     st.title("🔐 LGA Handbook Login")
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
@@ -70,7 +71,7 @@ def ask_gpt(question, context_chunks):
 
     prompt = f"""
 You are an AI trained to help legal professionals find relevant content in the LGA Handbook.
-Use only direct quotes from the context and cite them clearly. Begin with a concise summary.
+Use only direct quotes from the context and cite them clearly.
 
 Context:
 {context}
@@ -78,6 +79,7 @@ Context:
 Question:
 {question}
 """
+
     response = openai.chat.completions.create(
         model="gpt-4o",
         messages=[{"role": "user", "content": prompt}],
@@ -92,18 +94,13 @@ if st.button("Submit") and query:
         matches = search_chunks(query, index, chunks)
         answer = ask_gpt(query, matches)
 
-    # Separate answer and supporting quotes using simple convention (e.g. first paragraph = summary)
-    parts = answer.strip().split("\n\n")
-    summary = parts[0]
-    supporting_quotes = "\n\n".join(parts[1:])
-
     st.markdown("### 📘 Answer:")
-    st.write(summary)
+    st.write(answer)
 
-    if supporting_quotes:
-        with st.expander("📄 Show supporting quotes"):
-            st.markdown(supporting_quotes)
+    with st.expander("📄 View supporting quotes"):
+        for m in matches:
+            st.markdown(f"> {m['text']}\n\n**(Source: {m['source']}, Page {m.get('page', '?')})**")
 
-        with st.expander("🔍 Source Chunks"):
-            for chunk in matches:
-                st.markdown(f"**{chunk['source']} (Page {chunk.get('page', '?')})**\n\n> {chunk['text']}")
+    with st.expander("🔍 View source chunks"):
+        for m in matches:
+            st.code(m['text'])

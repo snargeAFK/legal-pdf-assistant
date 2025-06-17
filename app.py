@@ -69,13 +69,36 @@ def ask_gpt(question, context_chunks):
     for c in context_chunks:
         context += f"{c['text']}\n\n(Source: {c['source']}, Page {c.get('page', '?')})\n\n"
 
-    prompt = f"""You are a legal assistant AI. Think realy hard about any possible connections between the question and the provided context. You must use direct quotes from the provided context if possible. Cite each quote by document name and page number. Also cite the relevant text used to generate the answer. If no quote can be found, respond: 'No source found in provided documents.'
+    prompt = f"""
+You are an AI legal assistant.
+
+Based only on the context below, first provide a **brief summary** to answer the user's question.
+Then list all **relevant direct quotes** from the context that support the answer.
+Each quote must include its document name and page number.
+
+If no answer can be found, respond: "No relevant information was found in the provided documents."
+
+---
 
 Context:
 {context}
 
+---
+
 Question:
 {question}
+
+---
+
+Answer Format:
+
+Answer Summary:
+[Short summary]
+
+Supporting Quotes:
+"Quote 1" (Source: filename.pdf, Page X)
+
+"Quote 2" (Source: filename.pdf, Page Y)
 """
 
     response = openai.chat.completions.create(

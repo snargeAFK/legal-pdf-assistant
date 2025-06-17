@@ -4,3 +4,4 @@ faiss-cpu
 PyMuPDF
 tiktoken
 numpy
+streamlit>=1.27.0
